@@ -4,7 +4,7 @@ from django.http import JsonResponse
 from django.shortcuts import render
 from .models import Book
 from django.views.decorators.csrf import csrf_exempt
-from .serializers import BookListSerializer
+from .serializers import BookSerializer
 from .validate.validate_create_book import vaidate_create_book
 
 # Create your views here.
@@ -25,7 +25,7 @@ def index(request):
 
     if request.method == "GET":
         data_queryset = Book.objects.all()
-        data_books = BookListSerializer(data_queryset, many=True)
+        data_books = BookSerializer(data_queryset, many=True)
         data = {
             "books": data_books.data,
             "message": "Hello, welcome!"
@@ -37,14 +37,10 @@ def index(request):
         if errors:
             return JsonResponse(errors, status=400)
 
-        title = data.get('title')
-        author = data.get('author')
-        price = data.get('price')
-        quantity = data.get('quantity')
+        data_books = BookSerializer(data=data)
+        data_books.save()
 
-        book = Book.objects.create(title=title, author=author, price=price, quantity=quantity)
-
-        return JsonResponse({"book": BookListSerializer(book).data})
+        return JsonResponse({"book": data_books.data})
     return JsonResponse({'error': 'Invalid request method'})
 
 @csrf_exempt
@@ -62,16 +58,15 @@ def detail(request, id):
     except Book.DoesNotExist:
         return JsonResponse({"error": "Book not found"}, status=404)
 
-    if request.method == "GET":
-        return JsonResponse({"book": BookListSerializer(book).data})
+    if request.method == "GET": 
+        return JsonResponse({"book": BookSerializer(book).data})
 
     if request.method == 'POST':
-        book.title = data.get('title', book.title)
-        book.author = data.get('author', book.author)
-        book.price = data.get('price', book.price)
-        book.quantity = data.get('quantity', book.quantity)
-        book.save()
-        return JsonResponse({"book": BookListSerializer(book).data})
+        data_books = BookSerializer(data=data)
+        if not data_books.is_valid():
+            return JsonResponse(data_books.errors, status=400)
+        data_books.save()
+        return JsonResponse({"book": data_books.data})
         
     if request.method == 'DELETE':
         book.delete()
