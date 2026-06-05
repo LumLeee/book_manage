@@ -6,6 +6,7 @@ from .models import Book
 from django.views.decorators.csrf import csrf_exempt
 from .serializers import BookSerializer
 from .validate.validate_create_book import vaidate_create_book
+from rest_framework.decorators import api_view
 
 # Create your views here.
 def get_request_data(request):
@@ -17,6 +18,7 @@ def get_request_data(request):
     return request.POST.dict()
 
 @csrf_exempt
+@api_view(['GET', 'POST'])
 def index(request):
 
     data = get_request_data(request)
@@ -44,6 +46,7 @@ def index(request):
     return JsonResponse({'error': 'Invalid request method'})
 
 @csrf_exempt
+@api_view(['GET', 'POST', 'DELETE'])
 def detail(request, id):
 
     data = get_request_data(request)
