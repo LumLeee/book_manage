@@ -86,3 +86,5 @@ class BookViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticated]
     filter_backends = [DjangoFilterBackend]
     filterset_fields = ['title', 'author', 'price', 'quantity']
+
+    
