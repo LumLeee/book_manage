@@ -1,0 +1,49 @@
+name: Django CI Pipeline
+
+# 1. Kích hoạt CI khi có Push hoặc Pull Request vào nhánh main
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  test:
+    # 2. Khởi tạo một máy ảo Ubuntu mới tinh để chạy test
+    runs-on: ubuntu-latest
+
+    # 3. Chuyển thư mục làm việc mặc định vào 'backend'
+    defaults:
+      run:
+        working-directory: ./backend
+
+    steps:
+    # Bước 3.1: Kéo mã nguồn từ GitHub xuống máy ảo
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    # Bước 3.2: Cài đặt Python (Bạn có thể đổi phiên bản tùy ý)
+    - name: Set up Python 3.12
+      uses: actions/setup-python@v5
+      with:
+        python-version: "3.12"
+        # Bật cache để các lần chạy sau cài thư viện nhanh hơn
+        cache: 'pip' 
+
+    # Bước 3.3: Cài đặt các thư viện cần thiết
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+
+    # Bước 3.4: Kiểm tra cú pháp (Linting) bằng Flake8
+    - name: Run Linting
+      run: |
+        pip install flake8
+        # Dừng CI nếu code có lỗi cú pháp hoặc dư thừa thư viện
+        flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
+
+    # Bước 3.5: Chạy tự động các bài Test của Django
+    - name: Run Unit Tests
+      run: |
+        python manage.py test
