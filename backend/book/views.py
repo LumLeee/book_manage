@@ -87,4 +87,17 @@ class BookViewSet(viewsets.ModelViewSet):
     filter_backends = [DjangoFilterBackend]
     filterset_fields = ['title', 'author', 'price', 'quantity']
 
+    def create(request):
+        serializer = BookSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return JsonResponse(serializer.data, status=201)
+        return JsonResponse(serializer.errors, status=400)
+    
+    def list(request):
+        queryset = Book.objects.all()
+        serializer = BookSerializer(queryset, many=True)
+        return JsonResponse(serializer.data, safe=False)
+
+        
     
